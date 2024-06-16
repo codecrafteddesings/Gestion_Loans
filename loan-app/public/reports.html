@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Reports</h1>
+    <canvas id="loansChart" width="400" height="200"></canvas>
+    <canvas id="paymentsChart" width="400" height="200"></canvas>
+    <script>
+        async function fetchData() {
+            const responseLoans = await fetch('/api/reports/loans', {
+                headers: {
+                    'x-auth-token': 'your-jwt-token'
+                }
+            });
+            const loans = await responseLoans.json();
+
+            const responsePayments = await fetch('/api/reports/payments', {
+                headers: {
+                    'x-auth-token': 'your-jwt-token'
+                }
+            });
+            const payments = await responsePayments.json();
+
+            const responseStatistics = await fetch('/api/reports/statistics', {
+                headers: {
+                    'x-auth-token': 'your-jwt-token'
+                }
+            });
+            const statistics = await responseStatistics.json();
+
+            createCharts(loans, payments, statistics);
+        }
+
+        function createCharts(loans, payments, statistics) {
+            const loansChartCtx = document.getElementById('loansChart').getContext('2d');
+            const paymentsChartCtx = document.getElementById('paymentsChart').getContext('2d');
+
+            new Chart(loansChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: loans.map(loan => loan.borrower.name),
+                    datasets: [{
+                        label: 'Loan Amount',
+                        data: loans.map(loan => loan.amount),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            new Chart(paymentsChartCtx, {
+                type: 'line',
+                data: {
+                    labels: payments.map(payment => new Date(payment.paymentDate).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Payment Amount',
+                        data: payments.map(payment => payment.amount),
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            console.log(statistics);
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
